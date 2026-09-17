@@ -227,7 +227,7 @@ def get_stats(units=DEFAULT_UNITS):
                 last_mod = datetime.datetime.fromtimestamp(os.path.getmtime(mem_bank_file)).strftime('%d/%m/%y %H:%M')
             
             breakdown_str = []
-            for sp, cnt in speaker_counts.items():
+            for sp, cnt in sorted(speaker_counts.items()):
                 toks = speaker_tokens.get(sp, 0)
                 byts = speaker_bytes.get(sp, 0)
                 breakdown_str.append(f"• {sp}: {cnt} msgs ({toks:,} tokens, {format_size(byts, units)})")
