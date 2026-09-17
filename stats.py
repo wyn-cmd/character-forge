@@ -109,8 +109,8 @@ def get_stats(units=DEFAULT_UNITS):
                     full_text = "".join([entry.get("text", "") for entry in history])
                     hist_tokens = estimate_tokens(full_text)
                     hist_bytes = text_bytes(full_text)
-            except:
-                pass
+            except Exception as exc:
+                console.print(f"[yellow]Could not read {mem_file}: {exc}[/yellow]")
         
         mem_tokens = 0
         mem_bytes = 0
