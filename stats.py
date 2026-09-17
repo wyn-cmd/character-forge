@@ -155,8 +155,8 @@ def get_stats(units=DEFAULT_UNITS):
                       f"{format_bytes(totals['hist_file_bytes'], units)}[/dim]")
     
     # 2. Group Chat Statistics Table
-    group_folders = [d for d in os.listdir(CHARACTER_DIR) 
-                     if os.path.isdir(d) and os.path.exists(os.path.join(d, "group_config.json"))]
+    group_folders = sorted(d for d in os.listdir(CHARACTER_DIR)
+                     if os.path.isdir(d) and os.path.exists(os.path.join(d, "group_config.json")))
     
     if group_folders:
         console.print("\n")
