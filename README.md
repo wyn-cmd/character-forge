@@ -175,6 +175,16 @@ Two counters run during a session, both written to JSON and both reset when the 
 
 Both limits are conservative guesses at free tier behaviour and both are plain numbers in the code, so if your quota differs, change the number rather than the logic. `stats.py` prints the same bars so you can check without starting a session.
 
+Alongside those counters the engine writes a few files as you play:
+
+| File | Written when |
+|---|---|
+| `config.json` | remembers the last model you used |
+| `substitutions.json` | created on first run if it is missing |
+| `<character>/memory.json` | rewritten after every turn |
+| `<character>/memory.md` | rewritten when the engine summarises the transcript for you |
+| `<group>/group_config.json` | created by the `--group` command |
+
 ## Model fallback
 
 At startup the engine asks the API which models your key can see, merges that with the built-in `DEFAULT_FALLBACKS` list, and uses the first working one. If a request fails, it moves to the next model in the chain instead of ending the scene. Older model names stay in the list on purpose, since they are the ones most likely to still exist when a newer name is retired.
