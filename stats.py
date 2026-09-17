@@ -159,6 +159,7 @@ def get_stats(units=DEFAULT_UNITS):
                      if os.path.isdir(d) and os.path.exists(os.path.join(d, "group_config.json")))
     
     if group_folders:
+        group_msgs_total = 0
         console.print("\n")
         g_table = Table(title="Group Chat Statistics")
         g_table.add_column("Group Name", style="cyan")
@@ -244,12 +245,13 @@ def get_stats(units=DEFAULT_UNITS):
                 last_mod,
                 breakdown_display
             )
+            group_msgs_total += history_len
             g_table.add_section()
             
         console.print(g_table)
         if group_folders:
             hist_file_total = sum(file_bytes(os.path.join(g, "memory.json")) for g in group_folders)
-            console.print(f"[dim]Group history files on disk: {format_bytes(hist_file_total, units)}[/dim]")
+            console.print(f"[dim]{group_msgs_total:,} messages across {len(group_folders)} group(s) | history files on disk: {format_bytes(hist_file_total, units)}[/dim]")
 
     # 3. Daily Request Tracker
     REQUEST_TRACKER_FILE = "request_tracker.json"
