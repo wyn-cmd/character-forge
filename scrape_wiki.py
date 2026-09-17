@@ -9,7 +9,7 @@ def scrape_to_markdown(url, output_dir, filename):
     
     try:
         print(f"Fetching from Jina Reader: {reader_url}")
-        response = requests.get(reader_url)
+        response = requests.get(reader_url, timeout=30)
         response.raise_for_status()
         
         # Filter content to remove everything from 'Opt-Out Request Honored' onwards
