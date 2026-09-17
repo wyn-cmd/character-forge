@@ -1,0 +1,25 @@
+# secrets, never commit
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+build/
+dist/
+
+# Runtime state from your own sessions
+config.json
+token_tracker.json
+request_tracker.json
+substitutions.json
+*.log
+
+# Uncomment these two if you fork this for personal use and want to keep your
+# real conversations and memory banks out of git. They stay commented out here
+# because the template memory files are meant to be tracked.
+# */memory.json
+# */memory.md
