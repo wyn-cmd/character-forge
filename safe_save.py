@@ -13,8 +13,11 @@ def apply_substitutions(text, subs):
 
 def save_fact(fact_text, fact_file_path, subs_file_path):
     # substitutions are applied on the way in, so nothing raw lands on disk
-    with open(subs_file_path, "r", encoding="utf-8") as f:
-        subs = json.load(f)
+    if os.path.exists(subs_file_path):
+        with open(subs_file_path, "r", encoding="utf-8") as f:
+            subs = json.load(f)
+    else:
+        subs = {}
 
     safe_fact = apply_substitutions(fact_text, subs)
 
