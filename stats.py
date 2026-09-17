@@ -79,8 +79,8 @@ def parse_units(argv):
 def get_stats(units=DEFAULT_UNITS):
 
     # 1. Individual Character Statistics Table
-    char_folders = [d for d in os.listdir(CHARACTER_DIR) 
-                    if os.path.isdir(d) and os.path.exists(os.path.join(d, "character.md")) and not os.path.exists(os.path.join(d, "group_config.json"))]
+    char_folders = sorted(d for d in os.listdir(CHARACTER_DIR)
+                    if os.path.isdir(d) and os.path.exists(os.path.join(d, "character.md")) and not os.path.exists(os.path.join(d, "group_config.json")))
     
     table = Table(title="Character & Token Statistics")
     table.add_column("Character", style="cyan")
