@@ -192,7 +192,20 @@ At startup the engine asks the API which models your key can see, merges that wi
 | `MemBank Bytes` / `MemBank KB` | Size of the memory bank |
 | `Last Mem Update` | Timestamp of the last edit to the memory bank |
 
-The footer adds the totals and the on-disk size of the history files, which is larger than the content size because JSON stores keys and separators too. `--kb` switches every size column to kilobytes, `--bytes` forces exact bytes, and `config.json` can set the default.
+The footer adds the totals and the on-disk size of the history files, which is larger than the content size because JSON stores keys and separators too.
+
+Run against the two template characters it looks like this (no history yet, so only the memory banks have any weight):
+
+```
+Character & Token Statistics
+┃ Character ┃ Msgs ┃ Hist Tokens ┃ Hist KB ┃ MemBank Tokens ┃ MemBank KB ┃ Last Mem Update ┃
+│ Cliff     │ 0    │ 0           │ 0 B     │ 77             │ 310 B      │ 17/09/26 21:29  │
+│ Cayprae   │ 0    │ 0           │ 0 B     │ 78             │ 312 B      │ 17/09/26 21:29  │
+│ TOTAL     │ 0    │ 0           │ 0 B     │ 155            │ 622 B      │ 2 chars         │
+
+History content: 0 B across 0 messages | memory banks: 622 B
+History files on disk (memory.json, keys and separators included): 6 B
+``` `--kb` switches every size column to kilobytes, `--bytes` forces exact bytes, and `config.json` can set the default.
 
 ## The helper scripts
 
