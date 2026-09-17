@@ -11,6 +11,13 @@ env/
 build/
 dist/
 
+# editor and OS clutter
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.zip
+
 # Runtime state from your own sessions
 config.json
 token_tracker.json
