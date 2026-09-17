@@ -1,7 +1,8 @@
 #!/bin/bash
-# First argument is the character folder.
-# Optional second argument is a user-persona folder.
-.venv/bin/python roleplay.py Cliff/
+# Pass a character folder as the first argument, or it defaults to Cliff/.
+# A second argument names a folder describing you, the player.
+CHARACTER="${1:-Cliff/}"
+.venv/bin/python roleplay.py "$CHARACTER"
 
 # Group chats: create one, then start it the same way
 #   .venv/bin/python roleplay.py --group my-group Cayprae Cliff
