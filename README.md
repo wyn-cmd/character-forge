@@ -233,6 +233,12 @@ History files on disk (memory.json, keys and separators included): 6 B
 - `memory.json` is not ignored by `.gitignore` here, because the template files need to be tracked. See the privacy note below before you commit your own sessions.
 - Counters reset by date, so leaving a session open across midnight starts a fresh count.
 
+- The wiki lookup is a substring search over lines. It misses anything that needs fuzzy matching, synonyms or a rephrased question.
+- Token counts are characters divided by four. Fine for spotting trends, useless as a billing figure.
+- The free tier limits in the code are guesses, not values read back from the API.
+- There are no tests yet. The substitutions and the memory bank summariser are the two parts most likely to break quietly.
+- Group replies are ordered by the model rather than by any scheduling logic, so a quiet member can vanish from a session without notice.
+
 ## Privacy
 
 The templates in this repo have empty histories on purpose. Once you use the engine for real, your `memory.json` and `memory.md` fill up with personal conversation, and this repo does not exclude them by default because the template memory files have to stay tracked. If you fork it for your own use, either keep your characters in a private repo or uncomment the two memory lines at the bottom of `.gitignore`.
