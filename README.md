@@ -4,6 +4,27 @@ A terminal roleplay engine for running characters on the Gemini API. Every chara
 
 I built this because I kept losing long conversations to crashed scripts and half-written JSON. Now history gets written after every turn, memory lives in a file I can edit by hand, and there are counters that warn me before I run through a free tier quota. It has been running my own characters for a while, so most of the design decisions in here come from something breaking at 2am rather than from planning.
 
+## Contents
+
+- [What it does](#what-it-does)
+- [How a turn works](#how-a-turn-works)
+- [Repo layout](#repo-layout)
+- [Setup](#setup)
+- [Usage](#usage)
+- [Character folders](#character-folders)
+- [Memory banks](#memory-banks)
+- [Wiki lookups](#wiki-lookups)
+- [Keyword substitutions](#keyword-substitutions)
+- [Group chats](#group-chats)
+- [Budget tracking](#budget-tracking)
+- [Statistics](#statistics)
+- [The helper scripts](#the-helper-scripts)
+- [Gotchas](#gotchas)
+- [Limitations](#limitations)
+- [Privacy](#privacy)
+- [Requirements](#requirements)
+- [License](#license)
+
 ## What it does
 
 - **Folder per character.** A persona is markdown, not a database row, so you can diff it, copy it between machines, or send one to a friend. Nothing needs migrating when the folder moves.
