@@ -92,7 +92,7 @@ python roleplay.py Cliff/
 python roleplay.py Cliff/ Cayprae/
 ```
 
-Group chats take two commands. The first creates the group config, the second starts the session:
+Group chats take two commands. The first creates the group config and comes straight back, the second starts the session:
 
 ```bash
 python roleplay.py --group my-group Cayprae Cliff
