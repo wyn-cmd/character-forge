@@ -215,7 +215,9 @@ Character & Token Statistics
 
 History content: 0 B across 0 messages | memory banks: 622 B
 History files on disk (memory.json, keys and separators included): 6 B
-``` `--kb` switches every size column to kilobytes, `--bytes` forces exact bytes, and `config.json` can set the default.
+```
+
+`--kb` switches every size column to kilobytes, `--bytes` forces exact bytes, and `config.json` can set the default.
 
 ## The helper scripts
 
