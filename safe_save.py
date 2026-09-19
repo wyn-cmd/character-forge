@@ -26,6 +26,11 @@ def save_fact(fact_text, fact_file_path, subs_file_path):
             try:
                 facts = json.load(f)
             except json.JSONDecodeError:
+                # Move the unreadable file aside instead of overwriting it,
+                # so a half written bank can still be recovered by hand.
+                backup_path = fact_file_path + ".corrupt"
+                os.replace(fact_file_path, backup_path)
+                print(f"Could not parse {fact_file_path}, moved it to {backup_path}")
                 facts = []
     else:
         facts = []
