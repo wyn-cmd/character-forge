@@ -234,7 +234,6 @@ History files on disk (memory.json, keys and separators included): 6 B
 - Folder names with non-ASCII characters work fine, but quote them in the shell.
 - `memory.json` is not ignored by `.gitignore` here, because the template files need to be tracked. See the privacy note below before you commit your own sessions.
 - Counters reset by date, so leaving a session open across midnight starts a fresh count.
-
 - The wiki lookup is a substring search over lines. It misses anything that needs fuzzy matching, synonyms or a rephrased question.
 - Token counts are characters divided by four. Fine for spotting trends, useless as a billing figure.
 - The free tier limits in the code are guesses, not values read back from the API.
