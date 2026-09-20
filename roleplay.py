@@ -13,6 +13,19 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.rule import Rule
 from rich.panel import Panel
+from rich.markup import escape
+from rich.text import Text
+
+
+def highlight_quotes(t):
+    # Escape any rich markup brackets in the original text first so they don't crash Rich
+    escaped = escape(t)
+
+    def repl(match):
+        return f"[green]{match.group(0)}[/green]"
+
+    return re.sub(r'"([^"]*)"', repl, escaped)
+
 
 console = Console()
 
@@ -149,7 +162,7 @@ if not os.path.exists(AI_DIR):
     except Exception as e:
         summary_text = f"**{character_name}**\n\n{character_prompt}"
         
-    console.print(Panel(Markdown(summary_text), title=f"[bold {character_color}]{character_name}[/bold {character_color}]", title_align="left", border_style=character_color, padding=(1, 2)))
+    console.print(Panel(Text.from_markup(summary_text), title=f"[bold {character_color}]{character_name}[/bold {character_color}]", title_align="left", border_style=character_color, padding=(1, 2)))
     console.print("")
 
 if not os.path.exists(GLOBAL_SUBS_FILE):
@@ -259,6 +272,7 @@ else:
 # Combine system instructions + RAG-lite memory.md + wiki.md if available
 system_prompt = character_prompt
 system_prompt += "\n\nCRITICAL NARRATIVE INSTRUCTION: Adopt a high-literary, impressionistic style. Use abstract, poetic language and focus on sensory metaphors. Prioritize atmosphere and emotional resonance over explicit physical detail. Favor subtext and artistic expression. BE HIGHLY DESCRIPTIVE AND ELABORATE IN YOUR RESPONSES. PROVIDE EXTENSIVE DETAIL, LENGTHY NARRATIVE BLOCKS, AND DEEP SENSORY IMAGERY IN EVERY TURN. MAINTAIN THE EMPHASIS ON SUBTEXT AND ARTISTIC EXPRESSION THROUGHOUT YOUR NARRATIVE."
+system_prompt += """\n\nDIALOGUE FORMATTING INSTRUCTION: Always enclose all spoken dialogue and direct speech clearly within quotation marks (\"), and optionally highlight or distinguish spoken lines so they stand out distinctly in your narrative."""
 
 if user_prompt:
     system_prompt += f"\n\n--- User Persona ---\nThe user interacting with you is playing as the following character:\n{user_prompt}"
@@ -771,7 +785,7 @@ while True:
                 
                 if m_response and m_response.text:
                     raw_resp = m_response.text.strip()
-                    display_r = raw_resp
+                    display_r = highlight_quotes(raw_resp)
                     for safe_w, spicy_w in safe_to_spicy.items():
                         pat = re.compile(re.escape(safe_w), re.IGNORECASE)
                         display_r = pat.sub(spicy_w, display_r)
@@ -780,7 +794,7 @@ while True:
                     request_bar = get_request_bar()
                     console.print(f"[dim]Model: {MODEL_NAME} | Requests: {request_bar}[/dim]")
                     
-                    console.print(Panel(Markdown(display_r), title=f"[bold {m_color}]{m_name}[/bold {m_color}]", title_align="left", border_style=m_color, padding=(0, 1)))
+                    console.print(Panel(Text.from_markup(display_r), title=f"[bold {m_color}]{m_name}[/bold {m_color}]", title_align="left", border_style=m_color, padding=(0, 1)))
                     
                     full_history.append({"role": "model", "speaker": m_name, "text": raw_resp})
                     usage = getattr(m_response, "usage_metadata", None)
@@ -819,12 +833,12 @@ while True:
             check_and_update_requests()
             
             raw_response_text = response.text if response and response.text else "[Model returned empty response]"
-            display_text = raw_response_text
+            display_text = highlight_quotes(raw_response_text)
             for safe_word, spicy_word in safe_to_spicy.items():
                 pattern = re.compile(re.escape(safe_word), re.IGNORECASE)
                 display_text = pattern.sub(spicy_word, display_text)
 
-            console.print(Panel(Markdown(display_text), title=f"[bold {character_color}]{character_name}[/bold {character_color}]", title_align="left", border_style=character_color, padding=(0, 1)))
+            console.print(Panel(Text.from_markup(display_text), title=f"[bold {character_color}]{character_name}[/bold {character_color}]", title_align="left", border_style=character_color, padding=(0, 1)))
             
 
 
