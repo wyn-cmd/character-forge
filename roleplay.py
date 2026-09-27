@@ -904,6 +904,15 @@ while True:
             request_bar = get_request_bar()
             console.print(f"[dim]Requests: {request_bar}[/dim]")
             continue
+        # Feature: Handle exit command
+        if user_input.strip().lower() == "/exit":
+            console.print("[yellow]Saving and exiting... Take care! (^V^)[/yellow]")
+            if len(full_history) > 0:
+                try:
+                    update_memory_bank(MODEL_NAME)
+                except:
+                    pass
+            sys.exit(0)
         # 4. RAG-lite: Every 18 messages, update memory.md automatically
         if len(full_history) > 0 and len(full_history) % 18 == 0:
             update_memory_bank(MODEL_NAME)
