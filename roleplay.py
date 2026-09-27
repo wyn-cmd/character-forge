@@ -154,7 +154,14 @@ if not os.path.exists(AI_DIR):
             "detailing their name, appearance, personality, and setting in a rich, immersive narrative overview.\n\n"
             f"Character Profile:\n{character_prompt}"
         )
-        resp = client.models.generate_content(
+# (Around lines 140)
+        dry_run = "--dry-run" in sys.argv
+        # (Around line 157)
+        resp = None
+        if dry_run:
+            console.print("[dim]Dry run: Would have sent prompt to model...[/dim]")
+        else:
+            resp = client.models.generate_content(
             model=MODEL_NAME,
             contents=summary_prompt
         )
@@ -913,6 +920,11 @@ while True:
                 except:
                     pass
             sys.exit(0)
+        # Feature: Check for dry run mode
+        dry_run = False
+        if "--dry-run" in sys.argv:
+            dry_run = True
+
         # 4. RAG-lite: Every 18 messages, update memory.md automatically
         if len(full_history) > 0 and len(full_history) % 18 == 0:
             update_memory_bank(MODEL_NAME)
