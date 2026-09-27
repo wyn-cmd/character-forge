@@ -124,6 +124,15 @@ def get_safe_color(col, fallback="#00ffff"):
     return mapping.get(col, fallback)
 
 ai_profile = sys.argv[1]
+
+# Feature: Colour themes
+def get_color_theme(character_folder):
+    theme_file = os.path.join(character_folder, "theme.txt")
+    if os.path.exists(theme_file):
+        with open(theme_file, "r") as f:
+            return f.read().strip()
+    return "cyan"
+
 user_profile = sys.argv[2] if len(sys.argv) > 2 else None
 
 AI_DIR = ai_profile
@@ -338,6 +347,9 @@ if os.path.exists(MEMORY_FILE):
                 
                 name = user_display_name if role == "user" else character_name
                 color = user_color if role == "user" else character_color
+                # Apply theme if available
+                theme = get_color_theme(AI_DIR)
+                color = theme if theme in ["red", "green", "blue", "cyan", "magenta", "yellow"] else color
                 console.print(f"[bold {color}][{name}]:[/bold {color}] {text}")
             console.print("[dim]------------------------------------[/dim]\n")
             
