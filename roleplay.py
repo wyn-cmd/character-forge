@@ -894,6 +894,10 @@ while True:
         console.print(Rule(style="dim cyan"))
         console.print(stats_display)
 
+        # Feature: Handle help command
+        if user_input.strip().lower() == "/help":
+            console.print("[cyan]Available commands: /help, /exit, /stats[/cyan]")
+            continue
         # 4. RAG-lite: Every 18 messages, update memory.md automatically
         if len(full_history) > 0 and len(full_history) % 18 == 0:
             update_memory_bank(MODEL_NAME)
