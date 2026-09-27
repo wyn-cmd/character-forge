@@ -33,6 +33,7 @@ I built this because I kept losing long conversations to crashed scripts and hal
 - **/stats command.** Prints current session request statistics without needing to complete a turn.
 - **/exit command.** Gracefully saves history and exits the session.
 - **--dry-run mode.** Prints the generated prompt to the terminal without calling the API.
+- **Character themes.** Create `theme.txt` in a character folder to override their default terminal output colour.
 - **Long-term memory banks.** `memory.md` is injected into the system prompt on every turn, which is how a character remembers a conversation from three weeks ago. It is the most expensive file in the project and the most useful one.
 - **Durable message history.** `memory.json` holds the running transcript and is rewritten after each turn, so a crash mid-turn does not eat the file. Each character and each group keeps its own.
 - **Group chats.** A `group_config.json` lists the members and the engine keeps replies tagged by speaker. Group history never mixes into a character's solo history, even when the same characters appear in both.
