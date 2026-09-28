@@ -21,8 +21,14 @@ def load_json(path, default):
         return default
 
 
-# Processes a fact and appends it to the facts JSON file
+# Processes a fact and appends it to the facts JSON file with input validation
 def save_fact(fact_text, fact_file_path, subs_file_path):
+    # Reject non-string inputs or empty/whitespace-only strings that were previously accepted
+    if not isinstance(fact_text, str):
+        raise ValueError(f"Invalid input: fact_text must be a string, got {type(fact_text).__name__}")
+    if not fact_text.strip():
+        raise ValueError("Invalid input: fact_text cannot be empty or whitespace-only")
+
     subs = load_json(subs_file_path, default={})
     safe_fact = apply_substitutions(fact_text, subs)
 
@@ -60,3 +66,14 @@ if __name__ == "__main__":
 
         result = save_fact("A line that mentions example_phrase.", facts_path, subs_path)
         print(result)
+
+        # Test input validation rejections
+        try:
+            save_fact("", facts_path, subs_path)
+        except ValueError as e:
+            print(f"Caught expected validation error: {e}")
+
+        try:
+            save_fact(123, facts_path, subs_path)
+        except ValueError as e:
+            print(f"Caught expected validation error: {e}")
