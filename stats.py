@@ -23,35 +23,60 @@ def file_bytes(path):
 def unit_label(units):
     return "KB" if units == "kb" else "Bytes"
 
+def compact_size(n):
+    # Largest unit that fits, shared by both size formatters
+    if n >= 1024 * 1024:
+        return f"{n / (1024 * 1024):.2f} MB"
+    if n >= 1024:
+        return f"{n / 1024:.1f} KB"
+    return f"{n:,} B"
+
 def format_size(n, units):
+    # Compact units only when KB output is asked for, otherwise an exact count
     if units == "kb":
-        if n >= 1024 * 1024:
-            return f"{n / (1024 * 1024):.2f} MB"
-        if n >= 1024:
-            return f"{n / 1024:.1f} KB"
-        return f"{n:,} B"
+        return compact_size(n)
     return f"{n:,}"
 
 def format_bytes(n, units="bytes"):
-    if n >= 1024 * 1024:
-        compact = f"{n / (1024 * 1024):.2f} MB"
-    elif n >= 1024:
-        compact = f"{n / 1024:.1f} KB"
-    else:
-        compact = f"{n:,} B"
+    # Exact count, with compact units shown alongside when they add information
+    compact = compact_size(n)
     exact = f"{n:,} B"
     if compact == exact:
         return exact
     return f"{compact} ({exact})" if units == "kb" else f"{exact} ({compact})"
 
+def read_json(path, default=None, on_error=None):
+    # Reads a JSON file, returning default when it is missing or unreadable
+    if not os.path.exists(path):
+        return default
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as exc:
+        if on_error is not None:
+            on_error(exc)
+        return default
+
+def read_text(path, default="", on_error=None):
+    # Reads a UTF-8 text file, returning default when it is missing or unreadable
+    if not os.path.exists(path):
+        return default
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as exc:
+        if on_error is not None:
+            on_error(exc)
+        return default
+
+def bank_last_modified(path):
+    # Display timestamp for a memory bank, or N/A when the file is absent
+    if not os.path.exists(path):
+        return "N/A"
+    return datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime('%d/%m/%y %H:%M')
+
 def load_config():
-    if os.path.exists("config.json"):
-        try:
-            with open("config.json", "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {}
+    return read_json("config.json", {})
 
 def parse_units(argv):
     units = DEFAULT_UNITS
@@ -99,31 +124,17 @@ def get_stats(units=DEFAULT_UNITS):
         history_len = 0
         hist_tokens = 0
         hist_bytes = 0
-        if os.path.exists(mem_file):
-            try:
-                with open(mem_file, "r", encoding="utf-8") as f:
-                    history = json.load(f)
-                    history_len = len(history)
-                    full_text = "".join(entry.get("text", "") for entry in history)
-                    hist_tokens = estimate_tokens(full_text)
-                    hist_bytes = text_bytes(full_text)
-            except Exception as exc:
-                console.print(f"[yellow]Could not read {mem_file}: {exc}[/yellow]")
-        
-        mem_tokens = 0
-        mem_bytes = 0
-        if os.path.exists(mem_bank_file):
-            try:
-                with open(mem_bank_file, "r", encoding="utf-8") as f:
-                    mem_text = f.read()
-                mem_tokens = estimate_tokens(mem_text)
-                mem_bytes = text_bytes(mem_text)
-            except Exception as exc:
-                console.print(f"[yellow]Could not read {mem_bank_file}: {exc}[/yellow]")
-            
-        last_mod = "N/A"
-        if os.path.exists(mem_bank_file):
-            last_mod = datetime.datetime.fromtimestamp(os.path.getmtime(mem_bank_file)).strftime('%d/%m/%y %H:%M')
+        history = read_json(mem_file, [], lambda exc: console.print(f"[yellow]Could not read {mem_file}: {exc}[/yellow]"))
+        history_len = len(history)
+        full_text = "".join(entry.get("text", "") for entry in history)
+        hist_tokens = estimate_tokens(full_text)
+        hist_bytes = text_bytes(full_text)
+
+        mem_text = read_text(mem_bank_file, "", lambda exc: console.print(f"[yellow]Could not read {mem_bank_file}: {exc}[/yellow]"))
+        mem_tokens = estimate_tokens(mem_text)
+        mem_bytes = text_bytes(mem_text)
+
+        last_mod = bank_last_modified(mem_bank_file)
             
         table.add_row(
             char, str(history_len), f"{hist_tokens:,}", format_size(hist_bytes, units),
@@ -184,57 +195,37 @@ def get_stats(units=DEFAULT_UNITS):
             cfg_file = os.path.join(g, "group_config.json")
             mem_file = os.path.join(g, "memory.json")
             mem_bank_file = os.path.join(g, "memory.md")
-            
-            members = []
-            if os.path.exists(cfg_file):
-                try:
-                    with open(cfg_file, "r", encoding="utf-8") as f:
-                        cfg = json.load(f)
-                        members = cfg.get("members", [])
-                except Exception:
-                    pass
-            
+
+            cfg = read_json(cfg_file, {})
+            members = cfg.get("members", []) if isinstance(cfg, dict) else []
+
             history_len = 0
             group_tokens = 0
             group_bytes = 0
-            
+
             speaker_counts = {m: 0 for m in members}
             speaker_tokens = {m: 0 for m in members}
             speaker_bytes = {m: 0 for m in members}
-            
-            if os.path.exists(mem_file):
-                try:
-                    with open(mem_file, "r", encoding="utf-8") as f:
-                        history = json.load(f)
-                        history_len = len(history)
-                        for entry in history:
-                            speaker = entry.get("speaker", entry.get("role", "unknown"))
-                            text = entry.get("text", "")
-                            toks = estimate_tokens(text)
-                            byts = text_bytes(text)
-                            group_tokens += toks
-                            group_bytes += byts
-                            
-                            speaker_counts[speaker] = speaker_counts.get(speaker, 0) + 1
-                            speaker_tokens[speaker] = speaker_tokens.get(speaker, 0) + toks
-                            speaker_bytes[speaker] = speaker_bytes.get(speaker, 0) + byts
-                except Exception:
-                    pass
 
-            group_mem_tokens = 0
-            group_mem_bytes = 0
-            if os.path.exists(mem_bank_file):
-                try:
-                    with open(mem_bank_file, "r", encoding="utf-8") as f:
-                        mem_text = f.read()
-                    group_mem_tokens = estimate_tokens(mem_text)
-                    group_mem_bytes = text_bytes(mem_text)
-                except Exception:
-                    pass
+            history = read_json(mem_file, [])
+            history_len = len(history)
+            for entry in history:
+                speaker = entry.get("speaker", entry.get("role", "unknown"))
+                text = entry.get("text", "")
+                toks = estimate_tokens(text)
+                byts = text_bytes(text)
+                group_tokens += toks
+                group_bytes += byts
 
-            last_mod = "N/A"
-            if os.path.exists(mem_bank_file):
-                last_mod = datetime.datetime.fromtimestamp(os.path.getmtime(mem_bank_file)).strftime('%d/%m/%y %H:%M')
+                speaker_counts[speaker] = speaker_counts.get(speaker, 0) + 1
+                speaker_tokens[speaker] = speaker_tokens.get(speaker, 0) + toks
+                speaker_bytes[speaker] = speaker_bytes.get(speaker, 0) + byts
+
+            group_mem_text = read_text(mem_bank_file)
+            group_mem_tokens = estimate_tokens(group_mem_text)
+            group_mem_bytes = text_bytes(group_mem_text)
+
+            last_mod = bank_last_modified(mem_bank_file)
             
             breakdown_str = []
             for sp, cnt in sorted(speaker_counts.items()):
