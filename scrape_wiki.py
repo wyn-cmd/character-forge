@@ -3,6 +3,7 @@ import sys
 import requests
 
 def scrape_to_markdown(url: str, output_dir: str, filename: str) -> None:
+    # Use Jina Reader service to convert target URL into clean Markdown
     reader_url = f"https://r.jina.ai/{url}"
     
     try:
@@ -26,7 +27,7 @@ def scrape_to_markdown(url: str, output_dir: str, filename: str) -> None:
     except requests.RequestException as e:
         print(f"Network error while fetching URL: {e}", file=sys.stderr)
         sys.exit(1)
-    except IOError as e:
+    except OSError as e:
         print(f"File I/O error while saving output: {e}", file=sys.stderr)
         sys.exit(1)
 
