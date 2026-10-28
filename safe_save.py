@@ -21,6 +21,55 @@ def load_json(path, default):
         return default
 
 
+# Picks a backup name so an earlier corrupt file is never overwritten
+def next_backup_path(path):
+    candidate = f"{path}.corrupt"
+    index = 1
+    while os.path.exists(candidate):
+        candidate = f"{path}.corrupt.{index}"
+        index += 1
+    return candidate
+
+
+# Loads the substitution map, skipping entries that are not plain strings
+def load_substitutions(path):
+    subs = load_json(path, default={})
+    if not isinstance(subs, dict):
+        print(f"Ignoring {path}: expected a JSON object of substitutions, got {type(subs).__name__}")
+        return {}
+    # Empty keys and non-string values make re.sub raise, so they are dropped here
+    return {
+        key: value for key, value in subs.items()
+        if isinstance(key, str) and key and isinstance(value, str)
+    }
+
+
+# Reads the fact list, moving the file aside when it is not a JSON list
+def load_facts(fact_file_path):
+    try:
+        with open(fact_file_path, "r", encoding="utf-8") as f:
+            facts = json.load(f)
+    except (json.JSONDecodeError, OSError) as exc:
+        facts = None
+        reason = exc
+    else:
+        reason = None
+    if isinstance(facts, list):
+        return facts
+    # A valid JSON value that is not a list of facts cannot be appended to, so it
+    # gets the same backup treatment as an unparseable file
+    backup_path = next_backup_path(fact_file_path)
+    try:
+        os.replace(fact_file_path, backup_path)
+    except OSError as exc:
+        raise OSError(f"Could not move unreadable fact file {fact_file_path} aside: {exc}") from exc
+    if reason is None:
+        print(f"{fact_file_path} did not contain a list of facts, moved it to {backup_path}")
+    else:
+        print(f"Could not parse {fact_file_path} ({reason}), moved it to {backup_path}")
+    return []
+
+
 # Processes a fact and appends it to the facts JSON file with input validation
 def save_fact(fact_text, fact_file_path, subs_file_path):
     # Reject non-string inputs or empty/whitespace-only strings that were previously accepted
@@ -29,19 +78,12 @@ def save_fact(fact_text, fact_file_path, subs_file_path):
     if not fact_text.strip():
         raise ValueError("Invalid input: fact_text cannot be empty or whitespace-only")
 
-    subs = load_json(subs_file_path, default={})
+    subs = load_substitutions(subs_file_path)
     safe_fact = apply_substitutions(fact_text, subs)
 
     facts = []
     if os.path.exists(fact_file_path):
-        try:
-            with open(fact_file_path, "r", encoding="utf-8") as f:
-                facts = json.load(f)
-        except json.JSONDecodeError:
-            # Backup corrupt files to prevent data loss and allow manual recovery
-            backup_path = f"{fact_file_path}.corrupt"
-            os.replace(fact_file_path, backup_path)
-            print(f"Could not parse {fact_file_path}, moved it to {backup_path}")
+        facts = load_facts(fact_file_path)
 
     facts.append(safe_fact)
 
@@ -77,3 +119,20 @@ if __name__ == "__main__":
             save_fact(123, facts_path, subs_path)
         except ValueError as e:
             print(f"Caught expected validation error: {e}")
+
+        # A facts file holding something other than a list is set aside, not crashed on
+        with open(facts_path, "w", encoding="utf-8") as f:
+            json.dump({"not": "a list"}, f)
+        print(save_fact("A fact saved after a wrong-shaped file.", facts_path, subs_path))
+        print("wrong shape backed up:", os.path.exists(facts_path + ".corrupt"))
+
+        # A substitutions file that is not an object is ignored instead of crashing
+        with open(subs_path, "w", encoding="utf-8") as f:
+            json.dump(["bad", "shape"], f)
+        print(save_fact("A fact with a broken substitution map.", facts_path, subs_path))
+
+        # A second corrupt facts file gets its own backup instead of replacing the first
+        with open(facts_path, "w", encoding="utf-8") as f:
+            f.write("{not json")
+        print(save_fact("A fact saved after a second corrupt file.", facts_path, subs_path))
+        print("second backup kept:", os.path.exists(facts_path + ".corrupt.1"))
